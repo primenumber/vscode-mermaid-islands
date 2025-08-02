@@ -21,77 +21,68 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a VS Code extension that renders Mermaid diagrams as overlays within code comments. The extension uses VS Code's text decoration API with advanced features including dynamic sizing, scrolling support, and smart clipping.
 
+The codebase is organized into modular components for maintainability and separation of concerns:
+
 ### Core Components
 
-**Extension Entry Point** (`src/extension.ts:4-400`):
+**Extension Entry Point** (`src/extension.ts`):
+- Clean 32-line entry point that coordinates all components
 - Main `activate()` function initializes the extension and event listeners
-- `MermaidDecorationProvider` class handles all diagram rendering and decoration management
-- Uses regex pattern `/\/\/\s*mermaid\s*\n([\s\S]*?)\/\/\s*end-mermaid/g` to detect Mermaid code blocks in comments
-- Processes and cleans Mermaid code by removing comment prefixes (`//`)
-- Generates real Mermaid SVG diagrams using Puppeteer and converts to base64 data URIs
+- Sets up event handlers for editor changes, text changes, selection changes, and scrolling
+- Manages the lifecycle of the MermaidDecorationProvider
 
-**Advanced Decoration System**:
-- **Dynamic Height Matching**: Decorations automatically scale to match comment block height
-- **Aspect Ratio Preservation**: Image width calculated based on SVG dimensions to maintain proportions
-- **Smart Clipping**: When scrolled, images clip from the top instead of scaling
-- **Visible Range Detection**: Only renders decorations for visible portions of comment blocks
-- **Real-time Updates**: Responds to scrolling, text changes, and cursor movement
+**Mermaid Decoration Provider** (`src/mermaidDecorationProvider.ts`):
+- Main orchestrator that coordinates SVG rendering and decoration management
+- Handles the complete workflow from parsing blocks to applying decorations
+- Manages visible range calculations and decoration updates
 
-**Event Handling** (`src/extension.ts:269-274`):
-- `onDidChangeActiveTextEditor` - Updates when switching files
-- `onDidChangeTextDocument` - Updates when code changes
-- `onDidChangeTextEditorSelection` - Updates when cursor moves
-- `onDidChangeTextEditorVisibleRanges` - Updates when scrolling
-- Hides decorations when cursor is within Mermaid code block for editing
+**Mermaid Parser** (`src/mermaidParser.ts`):
+- Detects Mermaid code blocks using regex pattern `/\/\/\s*mermaid\s*\n([\s\S]*?)\/\/\s*end-mermaid/g`
+- Cleans Mermaid code by removing comment prefixes (`//`)
+- Filters blocks where cursor is active (for editing mode)
 
-### Key Technical Features
+**SVG Renderer** (`src/svgRenderer.ts`):
+- Generates real Mermaid SVG diagrams using Puppeteer and headless Chrome
+- Implements comprehensive caching and performance optimizations
+- Handles error cases with fallback error SVGs
+- Manages browser instance lifecycle
 
-**Dynamic Sizing** (`calculateBlockHeight:133-145`, `calculateExactHiddenHeight:147-171`):
-- Reads actual VS Code editor settings (`editor.fontSize`, `editor.lineHeight`)
-- Calculates pixel-perfect heights for comment blocks
-- Handles partial line visibility for precise clipping
+**Decoration Manager** (`src/decorationManager.ts`):
+- Creates and manages VS Code text decorations
+- Handles decoration caching to prevent unnecessary recreation
+- Manages decoration lifecycle and cleanup
 
-**Intelligent Clipping** (`getVisiblePortionOfBlock:122-130`):
-- Detects intersection between comment blocks and visible editor ranges
-- Calculates exact hidden height including partial lines
-- Positions background images to show correct portion when scrolled
+**Editor Utilities** (`src/editorUtils.ts`):
+- Calculates block heights based on VS Code editor settings
+- Determines visible portions of blocks during scrolling
+- Handles precise clipping calculations for partial line visibility
 
-**Code Processing** (`cleanMermaidCode:234-249`):
-- Removes `//` comment prefixes from each line
-- Preserves indentation for proper Mermaid syntax
-- Filters empty lines to prevent parsing issues
+**Type Definitions** (`src/types.ts`):
+- TypeScript interfaces for MermaidBlock, SvgRenderResult, and configuration
+- Ensures type safety throughout the codebase
 
-**Decoration Management**:
-- Creates unique decoration types per SVG content, height, and clipping position
-- Implements decoration caching to prevent unnecessary recreation
-- Proper cleanup and disposal to prevent memory leaks
+**Constants** (`src/constants.ts`):
+- Centralized configuration including regex patterns, cache limits, timeouts
+- Mermaid theme configuration for consistent appearance
+- Default dimensions and Puppeteer arguments
 
-### SVG Rendering
+### Advanced Features
 
-**Puppeteer-based Real Mermaid Rendering** (`renderMermaidToSvg:212-337`):
-- Uses headless Chrome browser for true DOM compatibility
-- Loads Mermaid from CDN with custom theme configuration
-- Renders actual Mermaid diagrams with accurate measurements
-- Implements comprehensive performance optimizations
+**Dynamic Height Matching**: Decorations automatically scale to match comment block height by reading VS Code editor settings (`editor.fontSize`, `editor.lineHeight`)
+
+**Aspect Ratio Preservation**: Image width calculated based on SVG dimensions to maintain proportions
+
+**Smart Clipping**: When scrolled, images clip from the top instead of scaling, showing the correct portion of the diagram
+
+**Visible Range Detection**: Only renders decorations for visible portions of comment blocks to optimize performance
+
+**Real-time Updates**: Responds to scrolling, text changes, cursor movement, and file switching
 
 **Performance Optimizations**:
 - **Browser Instance Reuse**: Single browser shared across all renders
 - **SVG Result Caching**: LRU cache (100 items) for instant duplicate renders
 - **Theme Optimization**: High-contrast white theme for visibility
 - **Timeout Management**: 5-second render timeout for responsiveness
-
-**Rendering Process**:
-1. Cleans Mermaid code by removing comment prefixes
-2. Checks cache for previously rendered diagrams
-3. Creates new page in shared browser instance
-4. Injects HTML with Mermaid library and custom theme
-5. Renders diagram and measures actual SVG dimensions
-6. Caches result and returns SVG with precise width/height
-
-**Theme Configuration**:
-- White background with dark text/borders for maximum contrast
-- Custom `themeVariables` for consistent appearance across VS Code themes
-- Ensures arrows and text are clearly visible in both light/dark modes
 
 ### Testing
 
