@@ -69,6 +69,8 @@ export function activate(context: vscode.ExtensionContext) {
         private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
         private currentDecorations: Map<string, vscode.DecorationOptions[]> = new Map();
         private mermaidInitialized: boolean = false;
+        private browserInstance: any = null;
+        private svgCache: Map<string, {svg: string, width: number, height: number}> = new Map();
 
         async updateAllDecorations(editor: vscode.TextEditor, mermaidBlocks: Array<{code: string, range: vscode.Range}>) {
             // 既存のデコレーションをすべてクリア
@@ -199,7 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
                         border: 1px solid var(--vscode-editorWidget-border);
                         border-radius: 4px;
                         padding: 0px;
-                        background-color: var(--vscode-editor-background);
+                        background-color: #ffffff;
                         z-index: 10;
                         overflow: hidden;`
                 },
@@ -208,27 +210,144 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         private async renderMermaidToSvg(mermaidCode: string): Promise<{svg: string, width: number, height: number}> {
-            // Mermaidコードを清掃（コメントプレフィックスを除去）
-            const cleanedCode = this.cleanMermaidCode(mermaidCode);
-            
-            // 実際の実装では mermaid パッケージを使用予定
-            // 現在はプレースホルダーとして簡単なSVGを返す
-            const width = 400;
-            const height = 200;
-            const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-                <rect width="${width}" height="${height}" fill="#f0f0f0" stroke="#333" stroke-width="2"/>
-                <text x="${width/2}" y="${height/2-20}" text-anchor="middle" font-family="Arial" font-size="16" fill="#333">
-                    Mermaid Diagram
-                </text>
-                <text x="${width/2}" y="${height/2}" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">
-                    Code: ${cleanedCode.substring(0, 30)}${cleanedCode.length > 30 ? '...' : ''}
-                </text>
-                <text x="${width/2}" y="${height/2+20}" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">
-                    (Placeholder - Real rendering coming soon)
-                </text>
-            </svg>`;
-            
-            return { svg, width, height };
+            try {
+                // Mermaidコードを清掃（コメントプレフィックスを除去）
+                const cleanedCode = this.cleanMermaidCode(mermaidCode);
+                
+                // キャッシュをチェック
+                const cacheKey = cleanedCode;
+                if (this.svgCache.has(cacheKey)) {
+                    return this.svgCache.get(cacheKey)!;
+                }
+                
+                // ブラウザインスタンスを取得または作成
+                if (!this.browserInstance) {
+                    const puppeteer = await import('puppeteer');
+                    this.browserInstance = await puppeteer.default.launch({
+                        headless: true,
+                        args: ['--no-sandbox', '--disable-setuid-sandbox']
+                    });
+                }
+                
+                const page = await this.browserInstance.newPage();
+                
+                try {
+                    // MermaidとD3を含むHTMLページを作成
+                    const html = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+                    </head>
+                    <body>
+                        <div id="mermaid-container"></div>
+                        <script>
+                            mermaid.initialize({
+                                startOnLoad: false,
+                                theme: 'base',
+                                themeVariables: {
+                                    primaryColor: '#ffffff',
+                                    primaryTextColor: '#000000',
+                                    primaryBorderColor: '#333333',
+                                    lineColor: '#333333',
+                                    background: '#ffffff',
+                                    secondaryColor: '#f0f0f0',
+                                    tertiaryColor: '#e0e0e0',
+                                    cScale0: '#ffffff',
+                                    cScale1: '#f0f0f0',
+                                    cScale2: '#e0e0e0'
+                                },
+                                securityLevel: 'loose',
+                                fontFamily: 'Arial, sans-serif'
+                            });
+                            
+                            async function renderMermaid() {
+                                try {
+                                    const mermaidCode = \`${cleanedCode.replace(/`/g, '\\`')}\`;
+                                    const { svg } = await mermaid.render('mermaid-diagram', mermaidCode);
+                                    
+                                    // SVGを一時的に挿入してサイズを測定
+                                    const container = document.getElementById('mermaid-container');
+                                    container.innerHTML = svg;
+                                    
+                                    const svgElement = container.querySelector('svg');
+                                    const rect = svgElement.getBoundingClientRect();
+                                    
+                                    window.mermaidResult = {
+                                        svg: svg,
+                                        width: Math.ceil(rect.width) || 400,
+                                        height: Math.ceil(rect.height) || 300
+                                    };
+                                } catch (error) {
+                                    window.mermaidResult = { 
+                                        error: error.message,
+                                        svg: null,
+                                        width: 400,
+                                        height: 200
+                                    };
+                                }
+                            }
+                            
+                            renderMermaid();
+                        </script>
+                    </body>
+                    </html>`;
+                    
+                    await page.setContent(html);
+                    
+                    // Mermaidの処理完了を待つ
+                    await page.waitForFunction('window.mermaidResult !== undefined', { timeout: 5000 });
+                    
+                    // 結果を取得
+                    const result = await page.evaluate(() => (window as any).mermaidResult);
+                    
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    
+                    const finalResult = {
+                        svg: result.svg,
+                        width: result.width,
+                        height: result.height
+                    };
+                    
+                    // キャッシュに保存（最大100個まで）
+                    if (this.svgCache.size >= 100) {
+                        const firstKey = this.svgCache.keys().next().value;
+                        if (firstKey) {
+                            this.svgCache.delete(firstKey);
+                        }
+                    }
+                    this.svgCache.set(cacheKey, finalResult);
+                    
+                    return finalResult;
+                    
+                } finally {
+                    await page.close();
+                }
+                
+            } catch (error) {
+                console.error('Mermaid rendering error:', error);
+                
+                // エラーの場合はフォールバック画像を返す
+                const cleanedCode = this.cleanMermaidCode(mermaidCode);
+                const width = 400;
+                const height = 200;
+                const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="${width}" height="${height}" fill="#ffebee" stroke="#f44336" stroke-width="2"/>
+                    <text x="${width/2}" y="${height/2-20}" text-anchor="middle" font-family="Arial" font-size="14" fill="#d32f2f">
+                        Mermaid Error
+                    </text>
+                    <text x="${width/2}" y="${height/2}" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">
+                        ${String(error).substring(0, 40)}...
+                    </text>
+                    <text x="${width/2}" y="${height/2+20}" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">
+                        Code: ${cleanedCode.substring(0, 30)}...
+                    </text>
+                </svg>`;
+                
+                return { svg, width, height };
+            }
         }
 
         private cleanMermaidCode(mermaidCode: string): string {
@@ -250,11 +369,22 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
 
-        dispose() {
+        async dispose() {
             // すべてのデコレーションタイプを破棄
             this.decorationTypes.forEach(decorationType => decorationType.dispose());
             this.decorationTypes.clear();
             this.currentDecorations.clear();
+            this.svgCache.clear();
+            
+            // ブラウザインスタンスを閉じる
+            if (this.browserInstance) {
+                try {
+                    await this.browserInstance.close();
+                } catch (error) {
+                    console.error('Failed to close browser instance:', error);
+                }
+                this.browserInstance = null;
+            }
         }
     }
 

@@ -41,5 +41,10 @@
     "eslint": "^9.25.1",
     "type-fest": "^4.41.0",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/puppeteer": "^5.4.7",
+    "mermaid": "^11.9.0",
+    "puppeteer": "^24.15.0"
   }
 }
