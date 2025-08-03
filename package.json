@@ -7,10 +7,10 @@
     "vscode": "^1.102.0"
   },
   "categories": [
-    "Other"
+    "Visualization"
   ],
   "activationEvents": [
-    "*"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
