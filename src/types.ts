@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 export interface MermaidBlock {
     code: string;
     range: vscode.Range;
+    commentPrefix: string;
 }
 
 export interface SvgRenderResult {

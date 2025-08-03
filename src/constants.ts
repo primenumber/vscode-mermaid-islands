@@ -1,7 +1,5 @@
 import { MermaidConfig } from './types';
 
-export const MERMAID_REGEX = /\/\/\s*mermaid\s*\n([\s\S]*?)\/\/\s*end-mermaid/g;
-
 export const CACHE_SIZE_LIMIT = 100;
 export const RENDER_TIMEOUT = 5000;
 
@@ -30,3 +28,37 @@ export const MERMAID_CONFIG: MermaidConfig = {
 };
 
 export const PUPPETEER_ARGS = ['--no-sandbox', '--disable-setuid-sandbox'];
+
+export const LANGUAGE_COMMENT_MAP: Record<string, string> = {
+    'javascript': '//',
+    'typescript': '//',
+    'java': '//',
+    'c': '//',
+    'cpp': '//',
+    'csharp': '//',
+    'go': '//',
+    'rust': '//',
+    'php': '//',
+    'swift': '//',
+    'kotlin': '//',
+    'scala': '//',
+    'python': '#',
+    'ruby': '#',
+    'perl': '#',
+    'bash': '#',
+    'shell': '#',
+    'powershell': '#',
+    'r': '#',
+    'yaml': '#',
+    'toml': '#',
+    'dockerfile': '#',
+    'makefile': '#',
+    'sql': '--',
+    'haskell': '--',
+    'lua': '--',
+    'ada': '--',
+    'vhdl': '--',
+    'agda': '--'
+};
+
+export const DEFAULT_COMMENT_PREFIX = '//';

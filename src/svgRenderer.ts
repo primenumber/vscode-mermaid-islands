@@ -6,9 +6,9 @@ export class SvgRenderer {
     private browserInstance: any = null;
     private svgCache: Map<string, SvgRenderResult> = new Map();
 
-    async renderMermaidToSvg(mermaidCode: string): Promise<SvgRenderResult> {
+    async renderMermaidToSvg(mermaidCode: string, commentPrefix: string): Promise<SvgRenderResult> {
         try {
-            const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode);
+            const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
             
             const cacheKey = cleanedCode;
             if (this.svgCache.has(cacheKey)) {
@@ -48,7 +48,7 @@ export class SvgRenderer {
             
         } catch (error) {
             console.error('Mermaid rendering error:', error);
-            return this.createErrorSvg(mermaidCode, error);
+            return this.createErrorSvg(mermaidCode, commentPrefix, error);
         }
     }
 
@@ -114,8 +114,8 @@ export class SvgRenderer {
         this.svgCache.set(cacheKey, result);
     }
 
-    private createErrorSvg(mermaidCode: string, error: any): SvgRenderResult {
-        const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode);
+    private createErrorSvg(mermaidCode: string, commentPrefix: string, error: any): SvgRenderResult {
+        const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
         const { WIDTH, ERROR_HEIGHT } = DEFAULT_DIMENSIONS;
         
         const svg = `<svg width="${WIDTH}" height="${ERROR_HEIGHT}" xmlns="http://www.w3.org/2000/svg">

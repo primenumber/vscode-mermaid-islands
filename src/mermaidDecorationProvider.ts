@@ -14,7 +14,7 @@ export class MermaidDecorationProvider {
         const visibleRanges = editor.visibleRanges;
 
         for (const block of mermaidBlocks) {
-            const svgData = await this.svgRenderer.renderMermaidToSvg(block.code);
+            const svgData = await this.svgRenderer.renderMermaidToSvg(block.code, block.commentPrefix);
             
             const visibleRange = EditorUtils.getVisiblePortionOfBlock(block.range, visibleRanges);
             if (!visibleRange) {
