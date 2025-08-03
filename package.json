@@ -1,6 +1,6 @@
 {
   "name": "mermaid-islands",
-  "displayName": "mermaid_islands",
+  "displayName": "Mermaid Islands",
   "description": "Renders and displays the diagram described in the comments.",
   "version": "0.0.1",
   "engines": {
