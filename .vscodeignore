@@ -10,3 +10,5 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 node_modules/**
+CLAUDE.md
+.claude/**
