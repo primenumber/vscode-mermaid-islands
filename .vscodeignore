@@ -12,3 +12,4 @@ vsc-extension-quickstart.md
 node_modules/**
 CLAUDE.md
 .claude/**
+media/**
