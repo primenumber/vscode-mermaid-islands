@@ -22,7 +22,7 @@ int max(int x, int y) {
 
 The diagram will appear as a visual overlay above the comment block.
 
-![Animated demonstration showing a code editor with a C++ function and a Mermaid diagram overlay. The diagram displays a flowchart with nodes labeled Start, x greater than y, x, and y, connected by arrows. The overlay appears above the commented Mermaid code and updates in real time as the code is edited. The environment is a modern code editor window, conveying a sense of productivity and clarity.](https://github.com/primenumber/vscode-mermaid-islands/blob/main/media/mermaid_islands_demo.gif)
+![Animated demonstration showing a code editor with a C++ function and a Mermaid diagram overlay. The diagram displays a flowchart with nodes labeled Start, x greater than y, x, and y, connected by arrows. The overlay appears above the commented Mermaid code and updates in real time as the code is edited. The environment is a modern code editor window, conveying a sense of productivity and clarity.](https://github.com/primenumber/vscode-mermaid-islands/blob/main/media/mermaid_islands_demo.gif?raw=true)
 
 ## Features
 
