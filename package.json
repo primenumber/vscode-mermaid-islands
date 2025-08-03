@@ -6,6 +6,7 @@
   "engines": {
     "vscode": "^1.102.0"
   },
+  "publisher": "primenumber",
   "repository": {
     "type": "git",
     "url": "https://github.com/primenumber/vscode-mermaid-islands.git"
