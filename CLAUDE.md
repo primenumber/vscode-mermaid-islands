@@ -93,17 +93,39 @@ The codebase is organized into modular components for maintainability and separa
 
 ### Usage Pattern
 
-Users can create Mermaid diagrams in comments using this syntax:
-```
+Users can create Mermaid diagrams in comments using language-appropriate comment syntax. The extension automatically detects the file language and uses the appropriate comment style:
+
+**JavaScript/TypeScript/Java/C/C++/C#/Go/Rust/PHP/Swift/Kotlin/Scala:**
+```javascript
 // mermaid
-graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action 1]
-    B -->|No| D[Action 2]
+// graph TD
+//     A[Start] --> B{Decision}
+//     B -->|Yes| C[Action 1]
+//     B -->|No| D[Action 2]
 // end-mermaid
 ```
 
-The extension will overlay a visual representation directly over the comment block, with dynamic sizing and smart behavior during scrolling and editing.
+**Python/Ruby/Perl/Bash/Shell/PowerShell/R/YAML/TOML/Dockerfile/Makefile:**
+```python
+# mermaid
+# graph TD
+#     A[Start] --> B{Decision}
+#     B -->|Yes| C[Action 1]
+#     B -->|No| D[Action 2]
+# end-mermaid
+```
+
+**SQL/Haskell/Lua/Ada/VHDL/Agda:**
+```sql
+-- mermaid
+-- graph TD
+--     A[Start] --> B{Decision}
+--     B -->|Yes| C[Action 1]
+--     B -->|No| D[Action 2]
+-- end-mermaid
+```
+
+The extension will overlay a visual representation directly over the comment block, with dynamic sizing and smart behavior during scrolling and editing. Both the mermaid markers and the diagram code itself must be properly commented according to the file's language conventions.
 
 ### Performance Characteristics
 
