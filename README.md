@@ -6,16 +6,23 @@ Renders Mermaid diagrams as visual overlays directly within your code comments.
 
 Wrap your Mermaid diagram code in comments:
 
-```javascript
+```cpp
+
 // mermaid
-// graph TD
-//     A[Start] --> B{Decision}
-//     B -->|Yes| C[Action 1]
-//     B -->|No| D[Action 2]
+// graph LR
+//     A[Start] --> B{x > y}
+//     B -->|Yes| C[x]
+//     B -->|No| D[y]
 // end-mermaid
+int max(int x, int y) {
+  return (x > y) ? x : y;
+}
+
 ```
 
 The diagram will appear as a visual overlay above the comment block.
+
+![Animated demonstration showing a code editor with a C++ function and a Mermaid diagram overlay. The diagram displays a flowchart with nodes labeled Start, x greater than y, x, and y, connected by arrows. The overlay appears above the commented Mermaid code and updates in real time as the code is edited. The environment is a modern code editor window, conveying a sense of productivity and clarity.](https://github.com/primenumber/vscode-mermaid-islands/blob/main/mermaid_islands_demo.gif)
 
 ## Features
 
