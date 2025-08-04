@@ -17,10 +17,16 @@ export function activate(context: vscode.ExtensionContext) {
         await provider.updateAllDecorations(editor, mermaidBlocks);
     };
 
+    const onThemeChange = async () => {
+        provider.clearCache();
+        await updateDecorations();
+    };
+
     vscode.window.onDidChangeActiveTextEditor(updateDecorations, null, context.subscriptions);
     vscode.workspace.onDidChangeTextDocument(updateDecorations, null, context.subscriptions);
     vscode.window.onDidChangeTextEditorSelection(updateDecorations, null, context.subscriptions);
     vscode.window.onDidChangeTextEditorVisibleRanges(updateDecorations, null, context.subscriptions);
+    vscode.window.onDidChangeActiveColorTheme(onThemeChange, null, context.subscriptions);
 
     updateDecorations();
 

@@ -9,7 +9,7 @@ export const DEFAULT_DIMENSIONS = {
     ERROR_HEIGHT: 200
 };
 
-export const MERMAID_CONFIG: MermaidConfig = {
+export const MERMAID_LIGHT_CONFIG: MermaidConfig = {
     theme: 'base',
     themeVariables: {
         primaryColor: '#ffffff',
@@ -22,6 +22,24 @@ export const MERMAID_CONFIG: MermaidConfig = {
         cScale0: '#ffffff',
         cScale1: '#f0f0f0',
         cScale2: '#e0e0e0'
+    },
+    securityLevel: 'loose',
+    fontFamily: 'Arial, sans-serif'
+};
+
+export const MERMAID_DARK_CONFIG: MermaidConfig = {
+    theme: 'dark',
+    themeVariables: {
+        primaryColor: '#1f2937',
+        primaryTextColor: '#f9fafb',
+        primaryBorderColor: '#6b7280',
+        lineColor: '#9ca3af',
+        background: '#111827',
+        secondaryColor: '#374151',
+        tertiaryColor: '#4b5563',
+        cScale0: '#111827',
+        cScale1: '#374151',
+        cScale2: '#4b5563'
     },
     securityLevel: 'loose',
     fontFamily: 'Arial, sans-serif'

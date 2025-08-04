@@ -1,6 +1,7 @@
 import { SvgRenderResult } from './types';
-import { CACHE_SIZE_LIMIT, RENDER_TIMEOUT, DEFAULT_DIMENSIONS, MERMAID_CONFIG, PUPPETEER_ARGS } from './constants';
+import { CACHE_SIZE_LIMIT, RENDER_TIMEOUT, DEFAULT_DIMENSIONS, PUPPETEER_ARGS } from './constants';
 import { MermaidParser } from './mermaidParser';
+import { ThemeUtils } from './themeUtils';
 
 export class SvgRenderer {
     private browserInstance: any = null;
@@ -9,8 +10,9 @@ export class SvgRenderer {
     async renderMermaidToSvg(mermaidCode: string, commentPrefix: string): Promise<SvgRenderResult> {
         try {
             const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
+            const isDark = ThemeUtils.isDarkTheme();
             
-            const cacheKey = cleanedCode;
+            const cacheKey = `${cleanedCode}_${isDark ? 'dark' : 'light'}`;
             if (this.svgCache.has(cacheKey)) {
                 return this.svgCache.get(cacheKey)!;
             }
@@ -61,6 +63,7 @@ export class SvgRenderer {
     }
 
     private generateMermaidHtml(cleanedCode: string): string {
+        const mermaidConfig = ThemeUtils.getCurrentMermaidConfig();
         return `
         <!DOCTYPE html>
         <html>
@@ -70,7 +73,7 @@ export class SvgRenderer {
         <body>
             <div id="mermaid-container"></div>
             <script>
-                mermaid.initialize(${JSON.stringify(MERMAID_CONFIG)});
+                mermaid.initialize(${JSON.stringify(mermaidConfig)});
                 
                 async function renderMermaid() {
                     try {
@@ -117,21 +120,30 @@ export class SvgRenderer {
     private createErrorSvg(mermaidCode: string, commentPrefix: string, error: any): SvgRenderResult {
         const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
         const { WIDTH, ERROR_HEIGHT } = DEFAULT_DIMENSIONS;
+        const isDark = ThemeUtils.isDarkTheme();
+
+        const colors = isDark
+            ? { bg: '#2d1b24', border: '#f87171', title: '#f87171', text: '#d1d5db', code: '#9ca3af' }
+            : { bg: '#ffebee', border: '#f44336', title: '#d32f2f', text: '#666', code: '#999' };
         
         const svg = `<svg width="${WIDTH}" height="${ERROR_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-            <rect width="${WIDTH}" height="${ERROR_HEIGHT}" fill="#ffebee" stroke="#f44336" stroke-width="2"/>
-            <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2-20}" text-anchor="middle" font-family="Arial" font-size="14" fill="#d32f2f">
+            <rect width="${WIDTH}" height="${ERROR_HEIGHT}" fill="${colors.bg}" stroke="${colors.border}" stroke-width="2"/>
+            <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2-20}" text-anchor="middle" font-family="Arial" font-size="14" fill="${colors.title}">
                 Mermaid Error
             </text>
-            <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2}" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">
+            <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2}" text-anchor="middle" font-family="Arial" font-size="12" fill="${colors.text}">
                 ${String(error).substring(0, 40)}...
             </text>
-            <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2+20}" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">
+            <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2+20}" text-anchor="middle" font-family="Arial" font-size="10" fill="${colors.code}">
                 Code: ${cleanedCode.substring(0, 30)}...
             </text>
         </svg>`;
         
         return { svg, width: WIDTH, height: ERROR_HEIGHT };
+    }
+
+    clearCache(): void {
+        this.svgCache.clear();
     }
 
     async dispose(): Promise<void> {

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { ThemeUtils } from './themeUtils';
 
 export class DecorationManager {
     private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
@@ -10,11 +11,12 @@ export class DecorationManager {
         displayWidth: number, 
         hiddenHeight: number
     ): vscode.TextEditorDecorationType {
-        const decorationKey = `${svgContent}-${fullHeight}-${visibleHeight}-${displayWidth}-${hiddenHeight}`;
+        const isDark = ThemeUtils.isDarkTheme();
+        const decorationKey = `${svgContent}-${fullHeight}-${visibleHeight}-${displayWidth}-${hiddenHeight}-${isDark ? 'dark' : 'light'}`;
         
         let decorationType = this.decorationTypes.get(decorationKey);
         if (!decorationType) {
-            decorationType = this.createDecorationType(svgContent, fullHeight, visibleHeight, displayWidth, hiddenHeight);
+            decorationType = this.createDecorationType(svgContent, fullHeight, visibleHeight, displayWidth, hiddenHeight, isDark);
             this.decorationTypes.set(decorationKey, decorationType);
         }
         
@@ -26,9 +28,11 @@ export class DecorationManager {
         fullHeight: number, 
         visibleHeight: number, 
         displayWidth: number, 
-        hiddenHeight: number
+        hiddenHeight: number,
+        isDark: boolean
     ): vscode.TextEditorDecorationType {
         const dataUri = `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`;
+        const backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
         
         return vscode.window.createTextEditorDecorationType({
             before: {
@@ -46,7 +50,7 @@ export class DecorationManager {
                     border: 1px solid var(--vscode-editorWidget-border);
                     border-radius: 4px;
                     padding: 0px;
-                    background-color: #ffffff;
+                    background-color: ${backgroundColor};
                     z-index: 10;
                     overflow: hidden;`
             },
@@ -58,6 +62,11 @@ export class DecorationManager {
         this.decorationTypes.forEach(decorationType => {
             editor.setDecorations(decorationType, []);
         });
+    }
+
+    clearCache(): void {
+        this.decorationTypes.forEach(decorationType => decorationType.dispose());
+        this.decorationTypes.clear();
     }
 
     dispose(): void {

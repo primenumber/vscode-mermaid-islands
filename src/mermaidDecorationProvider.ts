@@ -46,6 +46,11 @@ export class MermaidDecorationProvider {
         }
     }
 
+    clearCache(): void {
+        this.svgRenderer.clearCache();
+        this.decorationManager.clearCache();
+    }
+
     async dispose(): Promise<void> {
         this.decorationManager.dispose();
         await this.svgRenderer.dispose();
