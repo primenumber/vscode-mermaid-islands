@@ -43,8 +43,8 @@ The codebase is organized into modular components for maintainability and separa
 
 **SVG Renderer** (`src/svgRenderer.ts`):
 - Generates real Mermaid SVG diagrams using Puppeteer and headless Chrome
-- Implements comprehensive caching and performance optimizations
-- Handles error cases with fallback error SVGs
+- Implements comprehensive caching with theme-specific cache keys (Light/Dark/HighContrast/HighContrastLight)
+- Handles error cases with theme-aware fallback error SVGs optimized for accessibility
 - Manages browser instance lifecycle
 
 **Decoration Manager** (`src/decorationManager.ts`):
@@ -63,8 +63,13 @@ The codebase is organized into modular components for maintainability and separa
 
 **Constants** (`src/constants.ts`):
 - Centralized configuration including regex patterns, cache limits, timeouts
-- Mermaid theme configuration for consistent appearance
+- Mermaid theme configurations for all VS Code theme types (Light, Dark, HighContrast, HighContrastLight)
 - Default dimensions and Puppeteer arguments
+
+**Theme Utilities** (`src/themeUtils.ts`):
+- Detects current VS Code theme kind and provides appropriate Mermaid configuration
+- Supports all ColorThemeKind values: Light, Dark, HighContrast, and HighContrastLight
+- Provides theme-aware color schemes optimized for accessibility and visibility
 
 ### Advanced Features
 
@@ -80,9 +85,15 @@ The codebase is organized into modular components for maintainability and separa
 
 **Performance Optimizations**:
 - **Browser Instance Reuse**: Single browser shared across all renders
-- **SVG Result Caching**: LRU cache (100 items) for instant duplicate renders
-- **Theme Optimization**: High-contrast white theme for visibility
+- **SVG Result Caching**: LRU cache (100 items) with theme-specific keys for instant duplicate renders
+- **Theme Optimization**: Adaptive themes (Light/Dark/HighContrast/HighContrastLight) for optimal visibility
 - **Timeout Management**: 5-second render timeout for responsiveness
+
+**Accessibility Features**:
+- **Theme Awareness**: Automatically adapts to VS Code's active theme type
+- **High Contrast Support**: Dedicated color schemes for HighContrast and HighContrastLight themes
+- **Error Visualization**: Theme-specific error SVGs with appropriate contrast ratios
+- **Accessibility-First Design**: Colors and contrasts optimized for users with visual impairments
 
 ### Testing
 

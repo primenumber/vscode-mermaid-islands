@@ -10,9 +10,9 @@ export class SvgRenderer {
     async renderMermaidToSvg(mermaidCode: string, commentPrefix: string): Promise<SvgRenderResult> {
         try {
             const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
-            const isDark = ThemeUtils.isDarkTheme();
+            const themeKind = ThemeUtils.getThemeKindName();
             
-            const cacheKey = `${cleanedCode}_${isDark ? 'dark' : 'light'}`;
+            const cacheKey = `${cleanedCode}_${themeKind}`;
             if (this.svgCache.has(cacheKey)) {
                 return this.svgCache.get(cacheKey)!;
             }
@@ -120,11 +120,9 @@ export class SvgRenderer {
     private createErrorSvg(mermaidCode: string, commentPrefix: string, error: any): SvgRenderResult {
         const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
         const { WIDTH, ERROR_HEIGHT } = DEFAULT_DIMENSIONS;
-        const isDark = ThemeUtils.isDarkTheme();
+        const themeKind = ThemeUtils.getThemeKindName();
 
-        const colors = isDark
-            ? { bg: '#2d1b24', border: '#f87171', title: '#f87171', text: '#d1d5db', code: '#9ca3af' }
-            : { bg: '#ffebee', border: '#f44336', title: '#d32f2f', text: '#666', code: '#999' };
+        const colors = this.getErrorColors(themeKind);
         
         const svg = `<svg width="${WIDTH}" height="${ERROR_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
             <rect width="${WIDTH}" height="${ERROR_HEIGHT}" fill="${colors.bg}" stroke="${colors.border}" stroke-width="2"/>
@@ -140,6 +138,44 @@ export class SvgRenderer {
         </svg>`;
         
         return { svg, width: WIDTH, height: ERROR_HEIGHT };
+    }
+
+    private getErrorColors(themeKind: string): { bg: string; border: string; title: string; text: string; code: string } {
+        switch (themeKind) {
+            case 'Dark':
+                return {
+                    bg: '#2d1b24',
+                    border: '#f87171',
+                    title: '#f87171',
+                    text: '#d1d5db',
+                    code: '#9ca3af'
+                };
+            case 'HighContrast':
+                return {
+                    bg: '#000000',
+                    border: '#ffffff',
+                    title: '#ffffff',
+                    text: '#ffffff',
+                    code: '#cccccc'
+                };
+            case 'HighContrastLight':
+                return {
+                    bg: '#ffffff',
+                    border: '#000000',
+                    title: '#000000',
+                    text: '#000000',
+                    code: '#333333'
+                };
+            case 'Light':
+            default:
+                return {
+                    bg: '#ffebee',
+                    border: '#f44336',
+                    title: '#d32f2f',
+                    text: '#666666',
+                    code: '#999999'
+                };
+        }
     }
 
     clearCache(): void {

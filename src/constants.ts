@@ -45,6 +45,42 @@ export const MERMAID_DARK_CONFIG: MermaidConfig = {
     fontFamily: 'Arial, sans-serif'
 };
 
+export const MERMAID_HIGH_CONTRAST_CONFIG: MermaidConfig = {
+    theme: 'base',
+    themeVariables: {
+        primaryColor: '#000000',
+        primaryTextColor: '#ffffff',
+        primaryBorderColor: '#ffffff',
+        lineColor: '#ffffff',
+        background: '#000000',
+        secondaryColor: '#333333',
+        tertiaryColor: '#666666',
+        cScale0: '#000000',
+        cScale1: '#333333',
+        cScale2: '#666666'
+    },
+    securityLevel: 'loose',
+    fontFamily: 'Arial, sans-serif'
+};
+
+export const MERMAID_HIGH_CONTRAST_LIGHT_CONFIG: MermaidConfig = {
+    theme: 'base',
+    themeVariables: {
+        primaryColor: '#ffffff',
+        primaryTextColor: '#000000',
+        primaryBorderColor: '#000000',
+        lineColor: '#000000',
+        background: '#ffffff',
+        secondaryColor: '#cccccc',
+        tertiaryColor: '#999999',
+        cScale0: '#ffffff',
+        cScale1: '#cccccc',
+        cScale2: '#999999'
+    },
+    securityLevel: 'loose',
+    fontFamily: 'Arial, sans-serif'
+};
+
 export const PUPPETEER_ARGS = ['--no-sandbox', '--disable-setuid-sandbox'];
 
 export const LANGUAGE_COMMENT_MAP: Record<string, string> = {
