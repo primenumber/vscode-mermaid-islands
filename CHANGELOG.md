@@ -6,6 +6,11 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-08-05
+
+### Added
+- Support color theme (dark/light, default/high-contrast)
+
 ## [0.1.1] - 2025-08-04
 
 - Fix image URL in README.md
