@@ -10,7 +10,7 @@ import {
 export class ThemeUtils {
     static getCurrentMermaidConfig(): MermaidConfig {
         const colorTheme = vscode.window.activeColorTheme;
-        
+
         switch (colorTheme.kind) {
             case vscode.ColorThemeKind.Dark:
                 return MERMAID_DARK_CONFIG;
@@ -26,7 +26,7 @@ export class ThemeUtils {
 
     static isDarkTheme(): boolean {
         const colorTheme = vscode.window.activeColorTheme;
-        return colorTheme.kind === vscode.ColorThemeKind.Dark || 
+        return colorTheme.kind === vscode.ColorThemeKind.Dark ||
                colorTheme.kind === vscode.ColorThemeKind.HighContrast;
     }
 

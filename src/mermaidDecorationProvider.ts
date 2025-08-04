@@ -15,33 +15,33 @@ export class MermaidDecorationProvider {
 
         for (const block of mermaidBlocks) {
             const svgData = await this.svgRenderer.renderMermaidToSvg(block.code, block.commentPrefix);
-            
+
             const visibleRange = EditorUtils.getVisiblePortionOfBlock(block.range, visibleRanges);
             if (!visibleRange) {
                 continue;
             }
-            
+
             const fullBlockHeight = EditorUtils.calculateBlockHeight(editor, block.range);
             const visibleHeight = EditorUtils.calculateBlockHeight(editor, visibleRange);
-            
+
             const aspectRatio = svgData.width / svgData.height;
             const displayWidth = fullBlockHeight * aspectRatio;
-            
+
             const hiddenHeight = EditorUtils.calculateExactHiddenHeight(editor, block.range, visibleRange);
-            
+
             const decorationType = this.decorationManager.createMermaidDecoration(
-                svgData.svg, 
-                fullBlockHeight, 
-                visibleHeight, 
-                displayWidth, 
+                svgData.svg,
+                fullBlockHeight,
+                visibleHeight,
+                displayWidth,
                 hiddenHeight
             );
-            
+
             const decorationOptions: vscode.DecorationOptions = {
                 range: visibleRange,
                 hoverMessage: new vscode.MarkdownString('**Mermaid Diagram**\n\nClick to edit')
             };
-            
+
             editor.setDecorations(decorationType, [decorationOptions]);
         }
     }

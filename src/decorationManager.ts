@@ -5,35 +5,35 @@ export class DecorationManager {
     private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
 
     createMermaidDecoration(
-        svgContent: string, 
-        fullHeight: number, 
-        visibleHeight: number, 
-        displayWidth: number, 
+        svgContent: string,
+        fullHeight: number,
+        visibleHeight: number,
+        displayWidth: number,
         hiddenHeight: number
     ): vscode.TextEditorDecorationType {
         const isDark = ThemeUtils.isDarkTheme();
         const decorationKey = `${svgContent}-${fullHeight}-${visibleHeight}-${displayWidth}-${hiddenHeight}-${isDark ? 'dark' : 'light'}`;
-        
+
         let decorationType = this.decorationTypes.get(decorationKey);
         if (!decorationType) {
             decorationType = this.createDecorationType(svgContent, fullHeight, visibleHeight, displayWidth, hiddenHeight, isDark);
             this.decorationTypes.set(decorationKey, decorationType);
         }
-        
+
         return decorationType;
     }
 
     private createDecorationType(
-        svgContent: string, 
-        fullHeight: number, 
-        visibleHeight: number, 
-        displayWidth: number, 
+        svgContent: string,
+        fullHeight: number,
+        visibleHeight: number,
+        displayWidth: number,
         hiddenHeight: number,
         isDark: boolean
     ): vscode.TextEditorDecorationType {
         const dataUri = `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`;
         const backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
-        
+
         return vscode.window.createTextEditorDecorationType({
             before: {
                 contentText: ' ',

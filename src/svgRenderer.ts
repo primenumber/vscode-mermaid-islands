@@ -11,43 +11,43 @@ export class SvgRenderer {
         try {
             const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
             const themeKind = ThemeUtils.getThemeKindName();
-            
+
             const cacheKey = `${cleanedCode}_${themeKind}`;
             if (this.svgCache.has(cacheKey)) {
                 return this.svgCache.get(cacheKey)!;
             }
-            
+
             if (!this.browserInstance) {
                 await this.initializeBrowser();
             }
-            
+
             const page = await this.browserInstance.newPage();
-            
+
             try {
                 const html = this.generateMermaidHtml(cleanedCode);
                 await page.setContent(html);
-                
+
                 await page.waitForFunction('window.mermaidResult !== undefined', { timeout: RENDER_TIMEOUT });
-                
+
                 const result = await page.evaluate(() => (window as any).mermaidResult);
-                
+
                 if (result.error) {
                     throw new Error(result.error);
                 }
-                
+
                 const finalResult: SvgRenderResult = {
                     svg: result.svg,
                     width: result.width,
                     height: result.height
                 };
-                
+
                 this.cacheResult(cacheKey, finalResult);
                 return finalResult;
-                
+
             } finally {
                 await page.close();
             }
-            
+
         } catch (error) {
             console.error('Mermaid rendering error:', error);
             return this.createErrorSvg(mermaidCode, commentPrefix, error);
@@ -74,25 +74,25 @@ export class SvgRenderer {
             <div id="mermaid-container"></div>
             <script>
                 mermaid.initialize(${JSON.stringify(mermaidConfig)});
-                
+
                 async function renderMermaid() {
                     try {
                         const mermaidCode = \`${cleanedCode.replace(/`/g, '\\`')}\`;
                         const { svg } = await mermaid.render('mermaid-diagram', mermaidCode);
-                        
+
                         const container = document.getElementById('mermaid-container');
                         container.innerHTML = svg;
-                        
+
                         const svgElement = container.querySelector('svg');
                         const rect = svgElement.getBoundingClientRect();
-                        
+
                         window.mermaidResult = {
                             svg: svg,
                             width: Math.ceil(rect.width) || ${DEFAULT_DIMENSIONS.WIDTH},
                             height: Math.ceil(rect.height) || ${DEFAULT_DIMENSIONS.HEIGHT}
                         };
                     } catch (error) {
-                        window.mermaidResult = { 
+                        window.mermaidResult = {
                             error: error.message,
                             svg: null,
                             width: ${DEFAULT_DIMENSIONS.WIDTH},
@@ -100,7 +100,7 @@ export class SvgRenderer {
                         };
                     }
                 }
-                
+
                 renderMermaid();
             </script>
         </body>
@@ -123,7 +123,7 @@ export class SvgRenderer {
         const themeKind = ThemeUtils.getThemeKindName();
 
         const colors = this.getErrorColors(themeKind);
-        
+
         const svg = `<svg width="${WIDTH}" height="${ERROR_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
             <rect width="${WIDTH}" height="${ERROR_HEIGHT}" fill="${colors.bg}" stroke="${colors.border}" stroke-width="2"/>
             <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2-20}" text-anchor="middle" font-family="Arial" font-size="14" fill="${colors.title}">
@@ -136,7 +136,7 @@ export class SvgRenderer {
                 Code: ${cleanedCode.substring(0, 30)}...
             </text>
         </svg>`;
-        
+
         return { svg, width: WIDTH, height: ERROR_HEIGHT };
     }
 
@@ -184,7 +184,7 @@ export class SvgRenderer {
 
     async dispose(): Promise<void> {
         this.svgCache.clear();
-        
+
         if (this.browserInstance) {
             try {
                 await this.browserInstance.close();

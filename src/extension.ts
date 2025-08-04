@@ -4,9 +4,9 @@ import { MermaidParser } from './mermaidParser';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Mermaid Islands extension is now active!');
-    
+
     const provider = new MermaidDecorationProvider();
-    
+
     const updateDecorations = async () => {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
