@@ -7,6 +7,14 @@ export class SvgRenderer {
     private browserInstance: any = null;
     private svgCache: Map<string, SvgRenderResult> = new Map();
 
+    async renderToSvg(code: string, commentPrefix: string, type: 'mermaid' | 'svg'): Promise<SvgRenderResult> {
+        if (type === 'svg') {
+            return this.renderRawSvg(code, commentPrefix);
+        } else {
+            return this.renderMermaidToSvg(code, commentPrefix);
+        }
+    }
+
     async renderMermaidToSvg(mermaidCode: string, commentPrefix: string): Promise<SvgRenderResult> {
         try {
             const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
@@ -51,6 +59,56 @@ export class SvgRenderer {
         } catch (error) {
             console.error('Mermaid rendering error:', error);
             return this.createErrorSvg(mermaidCode, commentPrefix, error);
+        }
+    }
+
+    async renderRawSvg(svgCode: string, commentPrefix: string): Promise<SvgRenderResult> {
+        try {
+            const cleanedCode = MermaidParser.cleanMermaidCode(svgCode, commentPrefix);
+            const themeKind = ThemeUtils.getThemeKindName();
+
+            const cacheKey = `svg_${cleanedCode}_${themeKind}`;
+            if (this.svgCache.has(cacheKey)) {
+                return this.svgCache.get(cacheKey)!;
+            }
+
+            // Parse the SVG to get dimensions
+            const svgMatch = cleanedCode.match(/<svg[^>]*>/i);
+            if (!svgMatch) {
+                throw new Error('Invalid SVG: No opening <svg> tag found');
+            }
+
+            // Extract width and height from SVG attributes
+            const widthMatch = svgMatch[0].match(/width\s*=\s*["']?(\d+(?:\.\d+)?)[^"'\s]*/i);
+            const heightMatch = svgMatch[0].match(/height\s*=\s*["']?(\d+(?:\.\d+)?)[^"'\s]*/i);
+
+            let width = DEFAULT_DIMENSIONS.WIDTH;
+            let height = DEFAULT_DIMENSIONS.HEIGHT;
+
+            if (widthMatch && heightMatch) {
+                width = Math.ceil(parseFloat(widthMatch[1]));
+                height = Math.ceil(parseFloat(heightMatch[1]));
+            } else {
+                // If no dimensions found, use viewBox if available
+                const viewBoxMatch = svgMatch[0].match(/viewBox\s*=\s*["']?[^\d]*(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)/i);
+                if (viewBoxMatch) {
+                    width = Math.ceil(parseFloat(viewBoxMatch[3]));
+                    height = Math.ceil(parseFloat(viewBoxMatch[4]));
+                }
+            }
+
+            const result: SvgRenderResult = {
+                svg: cleanedCode,
+                width,
+                height
+            };
+
+            this.cacheResult(cacheKey, result);
+            return result;
+
+        } catch (error) {
+            console.error('SVG rendering error:', error);
+            return this.createErrorSvg(svgCode, commentPrefix, error, 'svg');
         }
     }
 
@@ -117,17 +175,18 @@ export class SvgRenderer {
         this.svgCache.set(cacheKey, result);
     }
 
-    private createErrorSvg(mermaidCode: string, commentPrefix: string, error: any): SvgRenderResult {
-        const cleanedCode = MermaidParser.cleanMermaidCode(mermaidCode, commentPrefix);
+    private createErrorSvg(code: string, commentPrefix: string, error: any, type: 'mermaid' | 'svg' = 'mermaid'): SvgRenderResult {
+        const cleanedCode = MermaidParser.cleanMermaidCode(code, commentPrefix);
         const { WIDTH, ERROR_HEIGHT } = DEFAULT_DIMENSIONS;
         const themeKind = ThemeUtils.getThemeKindName();
 
         const colors = this.getErrorColors(themeKind);
+        const errorTitle = type === 'svg' ? 'SVG Error' : 'Mermaid Error';
 
         const svg = `<svg width="${WIDTH}" height="${ERROR_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
             <rect width="${WIDTH}" height="${ERROR_HEIGHT}" fill="${colors.bg}" stroke="${colors.border}" stroke-width="2"/>
             <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2-20}" text-anchor="middle" font-family="Arial" font-size="14" fill="${colors.title}">
-                Mermaid Error
+                ${errorTitle}
             </text>
             <text x="${WIDTH/2}" y="${ERROR_HEIGHT/2}" text-anchor="middle" font-family="Arial" font-size="12" fill="${colors.text}">
                 ${String(error).substring(0, 40)}...

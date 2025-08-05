@@ -14,7 +14,7 @@ export class MermaidDecorationProvider {
         const visibleRanges = editor.visibleRanges;
 
         for (const block of mermaidBlocks) {
-            const svgData = await this.svgRenderer.renderMermaidToSvg(block.code, block.commentPrefix);
+            const svgData = await this.svgRenderer.renderToSvg(block.code, block.commentPrefix, block.type);
 
             const visibleRange = EditorUtils.getVisiblePortionOfBlock(block.range, visibleRanges);
             if (!visibleRange) {
@@ -37,9 +37,10 @@ export class MermaidDecorationProvider {
                 hiddenHeight
             );
 
+            const diagramType = block.type === 'svg' ? 'SVG' : 'Mermaid';
             const decorationOptions: vscode.DecorationOptions = {
                 range: visibleRange,
-                hoverMessage: new vscode.MarkdownString('**Mermaid Diagram**\n\nClick to edit')
+                hoverMessage: new vscode.MarkdownString(`**${diagramType} Diagram**\n\nClick to edit`)
             };
 
             editor.setDecorations(decorationType, [decorationOptions]);

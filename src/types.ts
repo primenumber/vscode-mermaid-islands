@@ -4,6 +4,7 @@ export interface MermaidBlock {
     code: string;
     range: vscode.Range;
     commentPrefix: string;
+    type: 'mermaid' | 'svg';
 }
 
 export interface SvgRenderResult {
