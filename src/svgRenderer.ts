@@ -1,7 +1,9 @@
+import * as vscode from 'vscode';
 import { SvgRenderResult } from './types';
 import { CACHE_SIZE_LIMIT, RENDER_TIMEOUT, DEFAULT_DIMENSIONS, PUPPETEER_ARGS } from './constants';
 import { MermaidParser } from './mermaidParser';
 import { ThemeUtils } from './themeUtils';
+import { BrowserFinder } from './browserFinder';
 
 export class SvgRenderer {
     private browserInstance: any = null;
@@ -113,11 +115,63 @@ export class SvgRenderer {
     }
 
     private async initializeBrowser(): Promise<void> {
-        const puppeteer = await import('puppeteer');
-        this.browserInstance = await puppeteer.default.launch({
-            headless: true,
-            args: PUPPETEER_ARGS
-        });
+        const puppeteer = await import('puppeteer-core');
+        const config = vscode.workspace.getConfiguration('mermaid-islands');
+        const userBrowserPath = config.get<string>('browserPath', '').trim();
+
+        // Priority 1: User-configured browser path
+        if (userBrowserPath) {
+            try {
+                console.log(`Using user-configured browser at: ${userBrowserPath}`);
+                this.browserInstance = await puppeteer.default.launch({
+                    headless: true,
+                    executablePath: userBrowserPath,
+                    args: PUPPETEER_ARGS
+                });
+                return;
+            } catch (userError) {
+                console.error(`Failed to launch user-configured browser at ${userBrowserPath}:`, userError);
+                vscode.window.showWarningMessage(
+                    `Failed to use configured browser path: ${userBrowserPath}. Falling back to auto-detection.`
+                );
+            }
+        }
+
+        // Priority 2: Auto-detected system browser
+        const chromePath = await BrowserFinder.findChrome();
+        if (chromePath) {
+            try {
+                console.log(`Using auto-detected browser at: ${chromePath}`);
+                this.browserInstance = await puppeteer.default.launch({
+                    headless: true,
+                    executablePath: chromePath,
+                    args: PUPPETEER_ARGS
+                });
+                return;
+            } catch (systemError) {
+                console.error('Failed to launch auto-detected browser:', systemError);
+            }
+        }
+
+        // Priority 3: Bundled browser (if available)
+        try {
+            this.browserInstance = await puppeteer.default.launch({
+                headless: true,
+                args: PUPPETEER_ARGS
+            });
+            console.log('Using bundled Chromium browser');
+        } catch (error) {
+            console.error('No suitable browser found.');
+            const errorMessage =
+                `No browser available. Please:\n` +
+                `1. Set a custom browser path in Settings > Extensions > Mermaid Islands > Browser Path, or\n` +
+                `2. Install Google Chrome, Microsoft Edge, or Chromium, or\n` +
+                `3. Run 'npx puppeteer browsers install chrome' to download Chromium\n` +
+                `Error: ${error instanceof Error ? error.message : String(error)}`;
+
+            vscode.window.showErrorMessage('Mermaid Islands: No browser found for diagram rendering');
+            throw new Error(errorMessage);
+        }
     }
 
     private generateMermaidHtml(cleanedCode: string): string {
