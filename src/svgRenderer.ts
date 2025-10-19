@@ -118,6 +118,7 @@ export class SvgRenderer {
         const puppeteer = await import('puppeteer-core');
         const config = vscode.workspace.getConfiguration('mermaid-islands');
         const userBrowserPath = config.get<string>('browserPath', '').trim();
+        const enableBrowserExtensions = config.get<boolean>('enableBrowserExtensions', false);
 
         // Priority 1: User-configured browser path
         if (userBrowserPath) {
@@ -126,7 +127,8 @@ export class SvgRenderer {
                 this.browserInstance = await puppeteer.default.launch({
                     headless: true,
                     executablePath: userBrowserPath,
-                    args: PUPPETEER_ARGS
+                    args: PUPPETEER_ARGS,
+                    enableExtensions: enableBrowserExtensions
                 });
                 return;
             } catch (userError) {
@@ -145,7 +147,8 @@ export class SvgRenderer {
                 this.browserInstance = await puppeteer.default.launch({
                     headless: true,
                     executablePath: chromePath,
-                    args: PUPPETEER_ARGS
+                    args: PUPPETEER_ARGS,
+                    enableExtensions: enableBrowserExtensions
                 });
                 return;
             } catch (systemError) {
@@ -157,7 +160,8 @@ export class SvgRenderer {
         try {
             this.browserInstance = await puppeteer.default.launch({
                 headless: true,
-                args: PUPPETEER_ARGS
+                args: PUPPETEER_ARGS,
+                enableExtensions: enableBrowserExtensions
             });
             console.log('Using bundled Chromium browser');
         } catch (error) {

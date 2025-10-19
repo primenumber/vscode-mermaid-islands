@@ -2,7 +2,7 @@
   "name": "mermaid-islands",
   "displayName": "Mermaid Islands",
   "description": "Renders and displays the diagram described in the comments.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "engines": {
     "vscode": "^1.102.0"
   },
@@ -32,6 +32,12 @@
           "type": "string",
           "default": "",
           "description": "Custom path to Chrome/Chromium executable. Leave empty to auto-detect.",
+          "scope": "window"
+        },
+        "mermaid-islands.enableBrowserExtensions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable browser extensions in Puppeteer. Can be useful for certain rendering scenarios.",
           "scope": "window"
         }
       }
